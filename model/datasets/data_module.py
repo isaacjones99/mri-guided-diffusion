@@ -1,16 +1,17 @@
 import lightning as L
 
+from PIL import Image
 from lightning.pytorch.utilities.types import EVAL_DATALOADERS, TRAIN_DATALOADERS
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-class  DataModule(L.LightningDataModule):
+class DataModule(L.LightningDataModule):
     
     def __init__(
-            self, 
-            data_dir: str = "./datasets/data",
-            batch_size: int = 4,
-            image_size: int = 256
+        self,
+        data_dir: str = "./datasets/data",
+        batch_size: int = 4,
+        image_size: int = 256
     ) -> None:
         super().__init__()
         self.data_dir = data_dir
@@ -40,7 +41,7 @@ class  DataModule(L.LightningDataModule):
         return DataLoader(
             self.train_ds,
             batch_size=self.batch_size,
-            shuffle=True
+            shuffle=True,
         )
     
     def val_dataloadder(self) -> EVAL_DATALOADERS:
