@@ -1,12 +1,12 @@
 data:
   ixi:
-    path: iamkzntsv/IXI2D
-    save_dir: data/ixi/transformed
+    data_dir: iamkzntsv/IXI2D
+    # save_dir: data/ixi/transformed
 model:
   clip_denoised: true
   num_samples: 4
   batch_size: 1
-  image_size: 256
+  image_size: 128
   use_ddim: false
   lr: 0.001
   class_cond: true

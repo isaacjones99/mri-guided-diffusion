@@ -1,7 +1,7 @@
 # import lightning as L
 
 # from PIL import Image
-# from lightning.pytorch.utilities.types import EVAL_DATALOADERS, TRAIN_DATALOADERS
+
 # from torch.utils.data import DataLoader
 # from torchvision import transforms
 
@@ -61,9 +61,8 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 class IXIDataset(Dataset):
-    def __init__(self, data_dir: str, batch_size: int = 4, train: bool = True, image_size: int = 128):
+    def __init__(self, data_dir: str, train: bool = True, image_size: int = 128):
         self.data_dir = os.path.join(data_dir, "train" if train else "validation")
-        self.batch_size = batch_size
         self.image_size = image_size
 
         self.transform = transforms.Compose(
