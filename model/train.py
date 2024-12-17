@@ -7,7 +7,8 @@ import torch
 from torch.utils.data import DataLoader
 from pytorch_lightning import Trainer
 
-from datasets.data_module import IXIDataset
+# from datasets.data_module import IXIDataset
+from .datasets.data_module import IXIDataset
 from .model import DiffusionModel
 from .utils import load_yaml_config, update_config, set_seeds, get_device
 
