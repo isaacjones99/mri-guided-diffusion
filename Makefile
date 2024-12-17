@@ -21,7 +21,7 @@ get_weights:
 	python -u -m get_weights $(SAVE_DIR)
 
 build:
-	docker build --no-cache . -f Dockerfile -t $(DOCKER_TAG)
+	docker build . -f Dockerfile -t $(DOCKER_TAG)
 
 # preprocess_mri:
 # 	docker run \
