@@ -10,7 +10,7 @@ SAVE_DIR=
 PREPROCESS_ARGS=
 INPAINT_ARGS=
 TRAIN_ARGS=
-GPU_ID=
+GPU_ID=0
 
 .PHONY: get_weights build preprocess_mri train inpaint clean sample
 
@@ -42,8 +42,8 @@ build:
 
 train:
 	docker run \
-		-m 8g \
 		-e WANDB_API_KEY=57df528e0432d36b1f85bb21edd76a6ae9a1bcba \
+		--gpus device=${GPU_ID} \
 		$(DOCKER_TAG) python -u -m model.train $(TRAIN_ARGS)
 
 shell:

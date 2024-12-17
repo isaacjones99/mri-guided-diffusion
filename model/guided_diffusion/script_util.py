@@ -5,7 +5,7 @@ from . import gaussian_diffusion as gd
 from .respace import SpacedDiffusion, space_timesteps
 from .unet import SuperResModel, UNetModel, EncoderUNetModel
 
-NUM_CLASSES = 1000
+NUM_CLASSES = 61
 
 
 def diffusion_defaults():
@@ -54,7 +54,7 @@ def model_and_diffusion_defaults():
         attention_resolutions="16,8",
         channel_mult="",
         dropout=0.0,
-        class_cond=False,
+        class_cond=True,
         use_checkpoint=False,
         use_scale_shift_norm=True,
         resblock_updown=False,
@@ -162,6 +162,9 @@ def create_model(
     attention_ds = []
     for res in attention_resolutions.split(","):
         attention_ds.append(image_size // int(res))
+
+
+    print(f"Creating UNet model, class_cond = {class_cond}")
 
     return UNetModel(
         image_size=image_size,
@@ -435,7 +438,8 @@ def add_dict_to_argparser(parser, default_dict):
 
 
 def args_to_dict(args, keys):
-    return {k: getattr(args, k) for k in keys}
+    # return {k: getattr(args, k) for k in keys}
+    return {k: args[k] for k in keys}
 
 
 def str2bool(v):

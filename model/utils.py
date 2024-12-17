@@ -26,13 +26,12 @@ def load_yaml_config(file_path):
     """
     with open(file_path, "r") as file:
         config = yaml.safe_load(file)
-    print(config)
     return config
 
 def update_config(config, args_dict):
     for k, v in config.items():
-        if isinstance(v, dict):
-            for kk, vv in args_dict.items():
-                if kk in v and vv is not None:
-                    v[kk] = vv
+        for kk, vv in args_dict.items():
+            if kk in v:
+                if vv is not None:
+                    config[k][kk] = vv
     return config

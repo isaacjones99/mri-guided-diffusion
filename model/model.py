@@ -1,21 +1,23 @@
 from typing import Any, Tuple
 
-import lightning as L
+# import lightning as L
+from pytorch_lightning import LightningModule
+
 import torch
 from diffusers import DDPMScheduler
 from torch import optim
 from torch.nn import functional as F
 
 # Local imports
-from ..model.guided_diffusion import dist_util
-from ..model.guided_diffusion.script_util import (
+from .guided_diffusion import dist_util
+from .guided_diffusion.script_util import (
     args_to_dict,
     create_model_and_diffusion,
     model_and_diffusion_defaults,
 )
 
 
-class DiffusionModel(L.LightningModule):
+class DiffusionModel(LightningModule):
 
     def __init__(self, config) -> None:
         super().__init__()
@@ -23,13 +25,13 @@ class DiffusionModel(L.LightningModule):
         self.config = config
 
         # Unet model and diffusion scheduler
+        config["model"].update(model_and_diffusion_defaults())
+        
         self.unet, self.diffusion = create_model_and_diffusion(
             **args_to_dict(config["model"], model_and_diffusion_defaults())
         )
 
         self.scheduler = DDPMScheduler(**self.config["scheduler"])
-
-        self.set_weights()
 
         # Set precision
         if self.config["model"]["use_fp16"]:
@@ -39,20 +41,27 @@ class DiffusionModel(L.LightningModule):
         # Get images and label from batch
         images = batch["images"]
         labels = batch["labels"]
+        print(f"Images shape: {images.shape}")
+        print(f"Labels shape: {labels.shape}")
+
         batch_size = self.config["model"]["batch_size"]
 
         # Sample noise
         noise = torch.randn(images.shape).to(images.device)
+        print(f"Noise shape: {noise.shape}")
 
+        print(f"Forward batch size = {batch_size}")
         timesteps = torch.randint(
             0,
             self.scheduler.config.num_train_timesteps,
             (batch_size,),
             device=images.device,
         ).long()
+        print(f"Timesteps shape: {timesteps.shape}")
 
         # Forward diffusion process
         noisy_images = self.scheduler.add_noise(images, noise, timesteps)
+        print(f"Noisy images shape: {timesteps.shape}")
 
         # Predict the noise
         noise_pred = self.unet(noisy_images, timesteps, labels).to(images.device)

@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from pytorch_lightning import Trainer
 
 # from datasets.data_module import IXIDataset
-from .datasets.data_module import IXIDataset
+from .datasets.ixi_data_module import IXIDataModule
 from .model import DiffusionModel
 from .utils import load_yaml_config, update_config, set_seeds, get_device
 
@@ -35,15 +35,17 @@ def parse_args():
 
 def main():
     args = parse_args()
-    config = update_config(load_yaml_config, vars(args))
+    config = update_config(load_yaml_config("model/config.yml"), vars(args))
 
     set_seeds()
 
     config["device"] = device = get_device()
     logger.info(f"Deivce set to {device}")
 
-    data = IXIDataset(**config["data"]["ixi"], train=True)
-    train_loader = DataLoader(data, batch_size=4, shuffle=True)
+    # data = IXIDataModule(**config["data"]["ixi"], train=True)
+    data = IXIDataModule(**config["data"]["ixi"], batch_size=4)
+    data.setup("fit")
+    print(f"Data module batch size: {data.batch_size}")
 
     # Init diffusion model
     model = DiffusionModel(config)
