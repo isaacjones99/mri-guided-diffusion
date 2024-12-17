@@ -4,6 +4,7 @@ import lightning as L
 import torch
 from diffusers import DDPMScheduler
 from torch import optim
+from torch.nn import functional as F
 
 # Local imports
 from ..model.guided_diffusion import dist_util
@@ -21,6 +22,7 @@ class DiffusionModel(L.LightningModule):
 
         self.config = config
 
+        # Unet model and diffusion scheduler
         self.unet, self.diffusion = create_model_and_diffusion(
             **args_to_dict(config["model"], model_and_diffusion_defaults())
         )
@@ -41,6 +43,42 @@ class DiffusionModel(L.LightningModule):
 
         # Sample noise
         noise = torch.randn(images.shape).to(images.device)
+
+        timesteps = torch.randint(
+            0,
+            self.scheduler.config.num_train_timesteps,
+            (batch_size,),
+            device=images.device,
+        ).long()
+
+        # Forward diffusion process
+        noisy_images = self.scheduler.add_noise(images, noise, timesteps)
+
+        # Predict the noise
+        noise_pred = self.unet(noisy_images, timesteps, labels).to(images.device)
+
+        return noise_pred, noise
+
+    def _common_step(self, batch, batch_idx) -> torch.Tensor:
+        noise_pred, noise = self.forward(batch)
+        loss = F.mse_loss(noise_pred, noise)
+        print(f"mse_loss = {loss}")
+        return loss
+
+    def training_step(self, batch, batch_idx) -> torch.Tensor:
+        loss = self._common_step(batch, batch_idx)
+        print(f"Training step loss: {loss}")
+        return loss
+    
+    def validation_step(self, batch, batch_idx) -> torch.Tensor:
+        loss = self._common_step(batch, batch_idx)
+        print(f"Validation step loss: {loss}")
+        return loss
+    
+    def configure_optimizers(self) -> Any:
+        optimizer = optim.Adam(self.parameters(), lr=self.config["model"]["lr"])
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+        return [optimizer], [{"scheduler": scheduler, "interval": "epoch"}]
 
     def set_weights(self) -> None:
         state_dict = dist_util.load_state_dict(
